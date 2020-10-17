@@ -6,28 +6,34 @@ import socket
 import time
 import threading
 
-
-
-
 ########GAME SETTING##########
 global current_number
 current_number = '000'
 
 global player
 player = {}
+
+global gametable_list
+gametable_list = []
+
 def GenerateID(name,ip,port):
 	rid = str(random.randint(100,999))
 	while rid in player:
 		rid = str(random.randint(100,999))
 	player[rid] = {'id':rid,'name':name,'ip':ip,'port':port}
 	print(player)
+	return rid
 
 def DecodeCommand(cmd):
 	# 'stg|410|192.168.1.150|7000|Somchai'
+	# header = ['ID','IP','NAME','ALL SCORE','TOTAL','SCORE','STATUS']
 	if cmd[:3] == 'stg':
 		allcmd = cmd.split('|')
 		if current_number == allcmd[1]:
-			GenerateID(allcmd[-1],allcmd[2],allcmd[3])
+			rid = GenerateID(allcmd[-1],allcmd[2],allcmd[3])
+			player_data = [rid,allcmd[2],allcmd[-1],'',0,0,'-']
+			gametable_list.append(player_data)
+			gametable.insert('','end',value=player_data)
 
 ###############NETWORK################
 serverip = '192.168.1.150'
@@ -60,7 +66,7 @@ def StartServer():
 
 
 GUI = Tk()
-GUI.geometry('700x800')
+GUI.geometry('900x800')
 GUI.title('Card Game')
 
 FONT1 = ('Impact',20)
@@ -68,8 +74,6 @@ FONT1 = ('Impact',20)
 ########LEFT TOP##########
 F1 = Frame(GUI)
 F1.place(x=50,y=50)
-
-
 
 ##############################
 def NewGame():
@@ -86,8 +90,8 @@ v_gamenumber.set('001')
 L1 = ttk.Label(GUI,textvariable=v_gamenumber,font=FONT1)
 L1.place(x=300,y=50)
 ########LEFT BOTTOM##########
-header = ['ID','NAME','ALL SCORE','TOTAL','SCORE','STATUS']
-hw = [70,100,200,70,70,70]
+header = ['ID','IP','NAME','ALL SCORE','TOTAL','SCORE','STATUS']
+hw = [70,100,100,200,70,70,70]
 
 gametable = ttk.Treeview(GUI,height=20,column=header,show='headings')
 gametable.place(x=50,y=300)
