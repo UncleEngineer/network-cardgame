@@ -2,6 +2,63 @@
 from tkinter import *
 from tkinter import ttk
 import random
+import socket
+import time
+import threading
+
+
+
+
+########GAME SETTING##########
+global current_number
+current_number = '000'
+
+global player
+player = {}
+def GenerateID(name,ip,port):
+	rid = str(random.randint(100,999))
+	while rid in player:
+		rid = str(random.randint(100,999))
+	player[rid] = {'id':rid,'name':name,'ip':ip,'port':port}
+	print(player)
+
+def DecodeCommand(cmd):
+	# 'stg|410|192.168.1.150|7000|Somchai'
+	if cmd[:3] == 'stg':
+		allcmd = cmd.split('|')
+		if current_number == allcmd[1]:
+			GenerateID(allcmd[-1],allcmd[2],allcmd[3])
+
+###############NETWORK################
+serverip = '192.168.1.150'
+port = 7000
+
+def SERVER():
+	while True:
+		server = socket.socket()
+		server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
+
+		server.bind((serverip,port))
+		server.listen(1)
+		print('Waiting for client...')
+
+		client, addr = server.accept() # object , ip and number
+		print('Connected from: ',str(addr))
+		try:
+			data = client.recv(1024).decode('utf-8') # ดึงข้อมูลที่ส่งมา
+			DecodeCommand(data)
+			print('Message from client: ',data)
+			client.send('Received!'.encode('utf-8'))
+			print('-----------')
+		except:
+			pass
+		client.close()
+
+def StartServer():
+	task = threading.Thread(target=SERVER)
+	task.start()
+
+
 GUI = Tk()
 GUI.geometry('700x800')
 GUI.title('Card Game')
@@ -11,18 +68,8 @@ FONT1 = ('Impact',20)
 ########LEFT TOP##########
 F1 = Frame(GUI)
 F1.place(x=50,y=50)
-########GAME SETTING##########
-global current_number
-current_number = '000'
 
-global player
-player = {}
 
-def GenerateID(name,ip,port):
-	rid = str(random.randint(100,999))
-	while rid in player:
-		rid = str(random.randint(100,999))
-	player[rid] = {'id':rid,'name':name,'ip':ip,'port':port}
 
 ##############################
 def NewGame():
@@ -60,4 +107,5 @@ B2 = ttk.Button(F2,text='Random Card',command=RandomCard)
 B2.pack(ipadx=30,ipady=20)
 
 
+StartServer()
 GUI.mainloop()
