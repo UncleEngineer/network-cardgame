@@ -35,6 +35,22 @@ def DecodeCommand(cmd):
 			gametable_list.append(player_data)
 			gametable.insert('','end',value=player_data)
 
+def SendCommand(data,serverip,port):
+	client = socket.socket()
+	client.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
+
+	client.connect((serverip,port))
+	try:
+		client.send(data.encode('utf-8'))
+
+		datafromserver = client.recv(1024).decode('utf-8')
+		print('Server: ',datafromserver)
+		print('-----------')
+	except:
+		pass
+	client.close()
+
+
 ###############NETWORK################
 serverip = '192.168.1.150'
 port = 7000
